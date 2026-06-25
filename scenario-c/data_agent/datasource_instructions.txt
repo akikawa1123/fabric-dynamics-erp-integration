@@ -1,0 +1,28 @@
+このデータソースは Lakehouse(lh_quality_analytics)（スキーマ dbo）です。T-SQL で照会します。品質テレメトリと ERP（受注・返品）が同一ソースにあり、クロスドメイン結合が可能です。
+
+■ dbo.Telemetry（工場ラインのリアルタイム品質テレメトリ / Eventstream→Lakehouse Delta）
+主な列: EventEnqueuedUtcTime(取込時刻/datetime2 ★時間フィルタはこれを使う), event_time(表示用/varchar 文字列), plant_id, line_id(例 LINE-A/LINE-B), station_id(例 ST-07-PRESS=圧入工程), product_number(製品コード), lot_id(ロット), vibration_mm_s(振動), temperature_c(温度), torque_nm(圧入トルク/float), dimension_dev_um(寸法偏差), status(ok/warn/fail), defect_flag。
+注意1: 時間でのフィルタ・並び替え・グルーピングには必ず datetime2 列 EventEnqueuedUtcTime を使う。event_time は varchar の表示用文字列なので日時計算には使わない（CONVERT/CAST は失敗する）。
+注意2: OneLake ミラーの遅延で現在時刻基準だと該当0件になりやすい。「今／直近」は EventEnqueuedUtcTime > (SELECT DATEADD(minute,-30,MAX(EventEnqueuedUtcTime)) FROM dbo.Telemetry) のように最新データ基準の相対ウィンドウで絞る。
+
+■ dbo.ERP_FulfillmentOrder（フルフィルメント受注ヘッダ / スナップショット）
+列: msdyn_fulfillmentorderid(受注ID/PK), msdyn_name(受注番号), msdyn_customername(顧客名), msdyn_iomstatename(状態), msdyn_plannedshipmentdate(出荷予定日), msdyn_shiptocountry(出荷先国), msdyn_shiptocity(出荷先都市)。
+
+■ dbo.ERP_FulfillmentOrderDetail（受注明細 / スナップショット）
+列: msdyn_fulfillmentorderdetailid(明細ID/PK), msdyn_fulfillmentid(親受注FK→ERP_FulfillmentOrder.msdyn_fulfillmentorderid), msdyn_product(製品GUID), msdyn_productname(製品名), msdyn_invoiceqty(出荷数量), msdyn_shipdate(出荷日)。
+
+■ dbo.ERP_ReturnOrderDetail（返品明細 / スナップショット）
+列: msdyn_productnumber(製品コード), msdyn_productid(製品GUID), msdyn_productidname(製品名), msdyn_returninginventorylotid(返品ロット), msdyn_returnreasonv2(返品理由), msdyn_dispositioncode(処置コード)。
+
+■ 結合
+- ヘッダ↔明細: ERP_FulfillmentOrder.msdyn_fulfillmentorderid = ERP_FulfillmentOrderDetail.msdyn_fulfillmentid
+- 顧客起点（営業）: ERP_FulfillmentOrder.msdyn_customername で絞り、ヘッダ→明細へ。
+- 製品コード↔GUID のブリッジ: ERP_ReturnOrderDetail(msdyn_productnumber, msdyn_productid)。
+- クロスドメイン（品質→受注）: Telemetry.product_number = ERP_ReturnOrderDetail.msdyn_productnumber
+  → ERP_ReturnOrderDetail.msdyn_productid = ERP_FulfillmentOrderDetail.msdyn_product
+  → ERP_FulfillmentOrderDetail.msdyn_fulfillmentid = ERP_FulfillmentOrder.msdyn_fulfillmentorderid
+
+■ 注意
+- 状態 msdyn_iomstatename in ('Shipped','Cancelled','Closed') は完了。進行中はそれ以外。
+- ERP はスナップショットのため日付での「直近」絞り込みは基本不要。顧客名は LIKE '%...%' で部分一致。
+- Telemetry の「異常」判定は時間窓内で COUNT(*) > 5 かつ defect_rate(=fail/総数) > 0.2 を目安。

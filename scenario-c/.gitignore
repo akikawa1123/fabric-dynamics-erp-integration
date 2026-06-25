@@ -13,6 +13,7 @@ dashboard_info.json
 lakehouse_info.json
 activator_info.json
 warehouse_info.json
+data_agent_info.json
 
 # === Python ===
 .venv/

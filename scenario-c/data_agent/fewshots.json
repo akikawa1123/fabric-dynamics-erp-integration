@@ -1,0 +1,40 @@
+{
+  "$schema": "1.0.0",
+  "fewShots": [
+    {
+      "id": "d1e2f3a4-0001-4a01-8a01-000000000001",
+      "question": "今、品質異常は出ている？どの製品・ロット・ステーション？",
+      "query": "SELECT TOP 25 product_number AS [product], lot_id AS [lot], station_id AS [station], SUM(CASE WHEN status='fail' THEN 1 ELSE 0 END) AS [fails], COUNT(*) AS [total], ROUND(MAX(torque_nm),2) AS [max_torque], ROUND(CAST(SUM(CASE WHEN status='fail' THEN 1 ELSE 0 END) AS float)/COUNT(*),3) AS [defect_rate]\nFROM dbo.Telemetry\nWHERE EventEnqueuedUtcTime > (SELECT DATEADD(minute,-30,MAX(EventEnqueuedUtcTime)) FROM dbo.Telemetry)\nGROUP BY product_number, lot_id, station_id\nHAVING COUNT(*) > 5 AND CAST(SUM(CASE WHEN status='fail' THEN 1 ELSE 0 END) AS float)/COUNT(*) > 0.2\nORDER BY [defect_rate] DESC"
+    },
+    {
+      "id": "d1e2f3a4-0002-4a02-8a02-000000000002",
+      "question": "トルクが規格上限(50Nm)を超えたイベントを直近で。",
+      "query": "SELECT TOP 25 EventEnqueuedUtcTime AS [event_time], line_id AS [line], station_id AS [station], product_number AS [product], lot_id AS [lot], ROUND(torque_nm,2) AS [torque_nm], status\nFROM dbo.Telemetry\nWHERE torque_nm > 50.0 AND EventEnqueuedUtcTime > (SELECT DATEADD(hour,-24,MAX(EventEnqueuedUtcTime)) FROM dbo.Telemetry)\nORDER BY EventEnqueuedUtcTime DESC"
+    },
+    {
+      "id": "d1e2f3a4-0003-4a03-8a03-000000000003",
+      "question": "Contoso の進行中の受注を一覧で。出荷予定日と状態も。",
+      "query": "SELECT TOP 25 fo.msdyn_name AS [order_no], fo.msdyn_customername AS [customer], fo.msdyn_iomstatename AS [state], fod.msdyn_productname AS [product], fod.msdyn_invoiceqty AS [qty], fo.msdyn_plannedshipmentdate AS [planned_ship], fo.msdyn_shiptocountry AS [ship_to_country]\nFROM dbo.ERP_FulfillmentOrder AS fo\nJOIN dbo.ERP_FulfillmentOrderDetail AS fod ON fo.msdyn_fulfillmentorderid = fod.msdyn_fulfillmentid\nWHERE fo.msdyn_customername LIKE '%Contoso%' AND fo.msdyn_iomstatename NOT IN ('Shipped','Cancelled','Closed')\nORDER BY fo.msdyn_plannedshipmentdate ASC"
+    },
+    {
+      "id": "d1e2f3a4-0004-4a04-8a04-000000000004",
+      "question": "進行中の受注を顧客別の件数で教えて。",
+      "query": "SELECT TOP 25 fo.msdyn_customername AS [customer], COUNT(*) AS [order_count]\nFROM dbo.ERP_FulfillmentOrder AS fo\nWHERE fo.msdyn_iomstatename NOT IN ('Shipped','Cancelled','Closed')\nGROUP BY fo.msdyn_customername\nORDER BY [order_count] DESC"
+    },
+    {
+      "id": "d1e2f3a4-0005-4a05-8a05-000000000005",
+      "question": "今 品質異常が出ている製品について、進行中の出荷オーダー（顧客・出荷予定）を出して。",
+      "query": "WITH anomaly_products AS (\n  SELECT product_number\n  FROM dbo.Telemetry\n  WHERE EventEnqueuedUtcTime > (SELECT DATEADD(minute,-30,MAX(EventEnqueuedUtcTime)) FROM dbo.Telemetry)\n  GROUP BY product_number\n  HAVING COUNT(*) > 5 AND CAST(SUM(CASE WHEN status='fail' THEN 1 ELSE 0 END) AS float)/COUNT(*) > 0.2\n),\nproduct_bridge AS (\n  SELECT DISTINCT msdyn_productnumber, msdyn_productid, msdyn_productidname\n  FROM dbo.ERP_ReturnOrderDetail\n)\nSELECT TOP 25 ap.product_number AS [product_code], pb.msdyn_productidname AS [product], fo.msdyn_name AS [order_no], fo.msdyn_iomstatename AS [state], fo.msdyn_customername AS [customer], fo.msdyn_plannedshipmentdate AS [planned_ship], fo.msdyn_shiptocountry AS [ship_to_country]\nFROM anomaly_products ap\nJOIN product_bridge pb ON ap.product_number = pb.msdyn_productnumber\nJOIN dbo.ERP_FulfillmentOrderDetail fod ON pb.msdyn_productid = fod.msdyn_product\nJOIN dbo.ERP_FulfillmentOrder fo ON fod.msdyn_fulfillmentid = fo.msdyn_fulfillmentorderid\nWHERE fo.msdyn_iomstatename NOT IN ('Shipped','Cancelled','Closed')\nORDER BY fo.msdyn_plannedshipmentdate ASC"
+    },
+    {
+      "id": "d1e2f3a4-0006-4a06-8a06-000000000006",
+      "question": "品質異常が出ている製品は過去に返品されている？返品理由は？",
+      "query": "WITH anomaly_products AS (\n  SELECT product_number\n  FROM dbo.Telemetry\n  WHERE EventEnqueuedUtcTime > (SELECT DATEADD(minute,-30,MAX(EventEnqueuedUtcTime)) FROM dbo.Telemetry)\n  GROUP BY product_number\n  HAVING COUNT(*) > 5 AND CAST(SUM(CASE WHEN status='fail' THEN 1 ELSE 0 END) AS float)/COUNT(*) > 0.2\n)\nSELECT TOP 25 rod.msdyn_productnumber AS [product_code], MAX(rod.msdyn_productidname) AS [product], rod.msdyn_returnreasonv2 AS [reason], COUNT(*) AS [return_lines]\nFROM anomaly_products ap\nJOIN dbo.ERP_ReturnOrderDetail rod ON ap.product_number = rod.msdyn_productnumber\nGROUP BY rod.msdyn_productnumber, rod.msdyn_returnreasonv2\nORDER BY [return_lines] DESC"
+    },
+    {
+      "id": "d1e2f3a4-0007-4a07-8a07-000000000007",
+      "question": "製品コード CRCA の未出荷オーダー（顧客・出荷予定日）を出して。",
+      "query": "SELECT TOP 25 fo.msdyn_name AS [order_no], fo.msdyn_customername AS [customer], fo.msdyn_iomstatename AS [state], rod.msdyn_productidname AS [product], fo.msdyn_plannedshipmentdate AS [planned_ship]\nFROM dbo.ERP_ReturnOrderDetail AS rod\nJOIN dbo.ERP_FulfillmentOrderDetail AS fod ON rod.msdyn_productid = fod.msdyn_product\nJOIN dbo.ERP_FulfillmentOrder AS fo ON fod.msdyn_fulfillmentid = fo.msdyn_fulfillmentorderid\nWHERE rod.msdyn_productnumber = 'CRCA' AND fo.msdyn_iomstatename NOT IN ('Shipped','Cancelled','Closed')\nORDER BY fo.msdyn_plannedshipmentdate ASC"
+    }
+  ]
+}

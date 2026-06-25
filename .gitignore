@@ -1,0 +1,16 @@
+# === シナリオ A（このリポジトリの対象外）===
+scenario-a/
+sm_fulfillment_analytics/
+
+# === ルート配下の補助ファイル ===
+install_pbi_skill.ps1
+
+# === Python ===
+.venv/
+__pycache__/
+*.pyc
+
+# === エディタ / OS ===
+.vscode/
+.DS_Store
+Thumbs.db
