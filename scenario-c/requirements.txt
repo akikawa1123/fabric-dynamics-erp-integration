@@ -1,6 +1,6 @@
 # シナリオC リアルタイム送信器の依存パッケージ
 azure-eventhub>=5.11.0
-# 直接 Kusto 取り込み(--mode kusto)を使う場合のみ必要:
+# 直接 Kusto 取り込み(--mode kusto) / クリーンアップ(--reset, --reset-only) で必要:
 # 6.x で API 変更あり(DataFormat の場所/ManagedStreamingIngestClient コンストラクタ)。コードは 6.x 準拠。
 azure-kusto-ingest>=6.0.0
 azure-kusto-data>=6.0.0

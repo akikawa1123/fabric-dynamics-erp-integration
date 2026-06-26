@@ -13,8 +13,12 @@ import json
 import os
 import random
 import signal
+import subprocess
 import sys
 import time
+import urllib.error
+import urllib.parse
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -201,6 +205,113 @@ def make_sender(mode: str):
     raise SystemExit(f"未知のモード: {mode}")
 
 
+# ---------------- クリーンアップ(古い時系列データの全削除) ----------------
+def _az_token(resource: str) -> str:
+    """az CLI からアクセストークンを取得"""
+    out = subprocess.run(
+        ["az", "account", "get-access-token", "--resource", resource, "--query", "accessToken", "-o", "tsv"],
+        capture_output=True, text=True, shell=(os.name == "nt"),
+    )
+    if out.returncode != 0:
+        raise SystemExit(f"az トークン取得に失敗 ({resource}): {out.stderr.strip()}")
+    return out.stdout.strip()
+
+
+def reset_kql():
+    """Eventhouse(KQL) の Telemetry を全クリア(スキーマは保持)"""
+    info_path = HERE / "rti_info.json"
+    if not info_path.exists():
+        print("[reset:kql] rti_info.json が無いためスキップ", flush=True)
+        return
+    from azure.kusto.data import KustoClient, KustoConnectionStringBuilder
+
+    info = json.loads(info_path.read_text(encoding="utf-8-sig"))
+    db = info["databases"][0]
+    db_name = db["name"]
+    client = KustoClient(KustoConnectionStringBuilder.with_az_cli_authentication(db["queryUri"]))
+    client.execute_mgmt(db_name, ".clear table Telemetry data")
+    print(f"[reset:kql] Telemetry をクリアしました (db={db_name})", flush=True)
+
+
+def _onelake_list(ws: str, directory: str, token: str):
+    """OneLake DFS でディレクトリ直下を一覧 -> [(name, isDirectory), ...]"""
+    url = (
+        f"https://onelake.dfs.fabric.microsoft.com/{ws}"
+        f"?resource=filesystem&recursive=false&directory={urllib.parse.quote(directory)}"
+    )
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+    with urllib.request.urlopen(req) as resp:
+        data = json.loads(resp.read().decode("utf-8"))
+    out = []
+    for p in data.get("paths", []):
+        name = (p.get("name") or "").rstrip("/")
+        is_dir = str(p.get("isDirectory", "false")).lower() == "true"
+        out.append((name, is_dir))
+    return out
+
+
+def reset_lakehouse():
+    """Lakehouse の Telemetry Delta テーブルを削除(=ドロップ)。Eventstream 送信で再作成される。"""
+    lh_path = HERE / "lakehouse_info.json"
+    cfg_path = HERE / "config.local.json"
+    if not lh_path.exists():
+        print("[reset:lakehouse] lakehouse_info.json が無いためスキップ", flush=True)
+        return
+    lh = json.loads(lh_path.read_text(encoding="utf-8-sig"))
+    ws = os.environ.get("FABRIC_WORKSPACE_ID")
+    if not ws and cfg_path.exists():
+        ws = json.loads(cfg_path.read_text(encoding="utf-8-sig")).get("workspaceId")
+    if not ws:
+        print("[reset:lakehouse] workspaceId 不明のためスキップ", flush=True)
+        return
+    lh_id = lh["lakehouseId"]
+    token = _az_token("https://storage.azure.com")
+    base = f"{lh_id}/Tables"
+
+    # スキーマ無効(Tables/Telemetry) / 有効(Tables/<schema>/Telemetry) の両対応で実体を探す
+    target = None
+    top = _onelake_list(ws, base, token)
+    for name, is_dir in top:
+        if is_dir and name.split("/")[-1] == "Telemetry":
+            target = name
+            break
+    if target is None:
+        for name, is_dir in top:
+            if not is_dir:
+                continue
+            for sub, sdir in _onelake_list(ws, name, token):
+                if sdir and sub.split("/")[-1] == "Telemetry":
+                    target = sub
+                    break
+            if target:
+                break
+    if target is None:
+        print("[reset:lakehouse] Telemetry テーブルが見つかりません(未作成?)。スキップ", flush=True)
+        return
+
+    del_url = f"https://onelake.dfs.fabric.microsoft.com/{ws}/{urllib.parse.quote(target)}?recursive=true"
+    req = urllib.request.Request(del_url, method="DELETE", headers={"Authorization": f"Bearer {token}"})
+    try:
+        urllib.request.urlopen(req)
+        print(f"[reset:lakehouse] Telemetry を削除しました ({target})。Eventstream 送信で再作成されます。", flush=True)
+    except urllib.error.HTTPError as e:
+        print(f"[reset:lakehouse] 削除失敗 HTTP {e.code}: {e.read().decode('utf-8', 'ignore')[:200]}", flush=True)
+
+
+def reset_all():
+    """Lakehouse と KQL の Telemetry を両方クリーンアップ"""
+    print("=== クリーンアップ開始(Lakehouse / KQL の Telemetry を全削除) ===", flush=True)
+    try:
+        reset_lakehouse()
+    except Exception as ex:
+        print(f"[reset:lakehouse] エラー: {ex}", flush=True)
+    try:
+        reset_kql()
+    except Exception as ex:
+        print(f"[reset:kql] エラー: {ex}", flush=True)
+    print("=== クリーンアップ完了 ===", flush=True)
+
+
 def run_phase(sender, label, seconds, rate, anomaly, anomaly_product, batch_secs=1.0):
     """指定秒数だけ rate(件/秒) でイベントを送信"""
     print(f"=== フェーズ: {label} ({seconds}s, {rate}件/秒, anomaly={anomaly}) ===", flush=True)
@@ -232,7 +343,14 @@ def main():
     p.add_argument("--anomaly-product", default="CRCA", help="異常を注入する製品コード")
     p.add_argument("--loop", action="store_true", help="シナリオを繰り返す")
     p.add_argument("--normal-only", action="store_true", help="平常運転のみ(異常注入なし)")
+    p.add_argument("--reset", action="store_true", help="送信前に Lakehouse/KQL の Telemetry を全削除する")
+    p.add_argument("--reset-only", action="store_true", help="Lakehouse/KQL の Telemetry を全削除して終了(送信しない)")
     args = p.parse_args()
+
+    if args.reset or args.reset_only:
+        reset_all()
+    if args.reset_only:
+        return
 
     sender = make_sender(args.mode)
     total = 0
