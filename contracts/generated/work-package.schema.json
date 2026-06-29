@@ -1,0 +1,145 @@
+{
+  "$defs": {
+    "MeetingRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "duration_minutes": {
+          "minimum": 15,
+          "title": "Duration Minutes",
+          "type": "integer"
+        },
+        "required_attendees": {
+          "items": {
+            "$ref": "#/$defs/ResolvedStakeholder"
+          },
+          "title": "Required Attendees",
+          "type": "array"
+        },
+        "agenda": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Agenda",
+          "type": "array"
+        }
+      },
+      "required": [
+        "title",
+        "duration_minutes",
+        "required_attendees",
+        "agenda"
+      ],
+      "title": "MeetingRequest",
+      "type": "object"
+    },
+    "Persona": {
+      "enum": [
+        "factory",
+        "sales"
+      ],
+      "title": "Persona",
+      "type": "string"
+    },
+    "ResolvedStakeholder": {
+      "additionalProperties": false,
+      "properties": {
+        "role_code": {
+          "$ref": "#/$defs/RoleCode"
+        },
+        "user_upn": {
+          "title": "User Upn",
+          "type": "string"
+        },
+        "routing_id": {
+          "title": "Routing Id",
+          "type": "string"
+        },
+        "resolution_reason": {
+          "title": "Resolution Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role_code",
+        "user_upn",
+        "routing_id",
+        "resolution_reason"
+      ],
+      "title": "ResolvedStakeholder",
+      "type": "object"
+    },
+    "RoleCode": {
+      "enum": [
+        "factory_quality_owner",
+        "line_owner",
+        "maintenance_owner",
+        "production_planner",
+        "logistics_owner",
+        "sales_owner",
+        "sales_manager",
+        "global_fallback"
+      ],
+      "title": "RoleCode",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "work_package_id": {
+      "title": "Work Package Id",
+      "type": "string"
+    },
+    "incident_id": {
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "persona": {
+      "$ref": "#/$defs/Persona"
+    },
+    "assignee_upn": {
+      "title": "Assignee Upn",
+      "type": "string"
+    },
+    "assessment_uri": {
+      "title": "Assessment Uri",
+      "type": "string"
+    },
+    "meeting": {
+      "$ref": "#/$defs/MeetingRequest"
+    },
+    "artifacts": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "safety_notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Safety Notes",
+      "type": "array"
+    }
+  },
+  "required": [
+    "work_package_id",
+    "incident_id",
+    "persona",
+    "assignee_upn",
+    "assessment_uri",
+    "meeting",
+    "artifacts"
+  ],
+  "title": "WorkPackage",
+  "type": "object"
+}

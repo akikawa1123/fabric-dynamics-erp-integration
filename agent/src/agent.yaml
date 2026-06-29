@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/microsoft/AgentSchema/refs/heads/main/schemas/v1.0/ContainerAgent.yaml
+
+kind: hosted
+name: manufacturing-quality-agent
+description: |
+    A basic Agent Framework agent hosted by Foundry.
+metadata:
+    tags:
+        - Agent Framework
+        - AI Agent Hosting
+        - Azure AI AgentServer
+        - Responses Protocol
+        - Streaming
+protocols:
+    - protocol: responses
+      version: 1.0.0
+resources:
+    cpu: "0.5"
+    memory: 1Gi
+environment_variables:
+    # ${...} はazd deploy時にazd環境変数から解決される（azd ai agent init由来の {{...}} は
+    # ローカルrunでは解決されるがdeployでは解決されず404になるため ${...} を使う）。
+    - name: AZURE_AI_MODEL_DEPLOYMENT_NAME
+      value: '${AZURE_AI_MODEL_DEPLOYMENT_NAME}'
+    # Task 006: Foundry IQ Toolbox（mq-quality-toolbox / knowledge_base_retrieve）。
+    # 公式17-foundry-iq-toolbox sampleと同形。
+    # FOUNDRY_PROJECT_ENDPOINT はhosted runtimeが自動注入するため宣言しない（sample準拠）。
+    - name: TOOLBOX_ENDPOINT
+      value: '${TOOLBOX_ENDPOINT}'
+    - name: TOOLBOX_NAME
+      value: '${TOOLBOX_NAME}'
+    # Task 005: Fabric Data Agent 接続（da_manufacturing_erp）。これが無いと
+    # agent_factory が Fabric ツールを attach せず、デプロイ済みエージェント（Teams/M365 Copilot）
+    # で製造データ照会ができない。値は azd 環境変数から解決。
+    - name: FABRIC_PROJECT_CONNECTION_ID
+      value: '${FABRIC_PROJECT_CONNECTION_ID}'
+code_configuration:
+    runtime: python_3_13
+    entry_point: main.py
+    dependency_resolution: remote_build

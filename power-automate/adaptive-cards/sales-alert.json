@@ -1,0 +1,46 @@
+{
+  "type": "AdaptiveCard",
+  "$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "顧客影響の確認依頼",
+      "weight": "Bolder",
+      "size": "Large"
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        {
+          "title": "インシデント",
+          "value": "${incidentId}"
+        },
+        {
+          "title": "顧客",
+          "value": "${customerName}"
+        },
+        {
+          "title": "製品",
+          "value": "${productNumber}"
+        },
+        {
+          "title": "判定",
+          "value": "${impactDecision}"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "AIで営業調査",
+      "url": "${agentDeepLink}"
+    },
+    {
+      "type": "Action.OpenUrl",
+      "title": "Work Package",
+      "url": "${workPackageUrl}"
+    }
+  ]
+}

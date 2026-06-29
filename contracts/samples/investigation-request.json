@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "operation": "factory_investigation",
+  "incident_id": "QI-20260625-001",
+  "detected_at": "2026-06-25T10:32:15+09:00",
+  "plant_id": "JP-NAGOYA-01",
+  "line_id": "LINE-A",
+  "station_id": "ST-07-PRESS",
+  "product_number": "CRCA",
+  "lot_id": "LOT-CRCA-20260625-001",
+  "dashboard_url": null,
+  "anomaly": {
+    "metric_name": "torque_nm",
+    "observed_value": 54.8,
+    "threshold_value": 50.0,
+    "unit": "Nm",
+    "failure_count": 18,
+    "total_count": 24,
+    "defect_rate": 0.75
+  }
+}

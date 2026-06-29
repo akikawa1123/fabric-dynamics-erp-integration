@@ -1,0 +1,21 @@
+examples:
+  - question: >
+      Investigate the anomaly for product CRCA, lot LOT-CRCA-20260625-001,
+      station ST-07-PRESS, detected at 2026-06-25T01:32:15Z.
+    kql: |
+      fn_quality_anomaly_context(
+        "CRCA",
+        "LOT-CRCA-20260625-001",
+        "ST-07-PRESS",
+        datetime(2026-06-25T01:32:15Z),
+        10m,
+        20m
+      )
+  - question: >
+      List candidate unshipped fulfillment orders for product CRCA.
+      Do not treat product-level matches as confirmed lot impact.
+    kql: |
+      fn_candidate_affected_orders("CRCA")
+  - question: Show historical return context for product CRCA.
+    kql: |
+      fn_product_return_context("CRCA")

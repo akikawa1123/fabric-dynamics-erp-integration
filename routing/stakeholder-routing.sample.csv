@@ -1,0 +1,9 @@
+routing_id,role_code,scope_type,plant_id,line_id,customer_name,product_number,user_upn,is_primary,priority,active
+R-001,factory_quality_owner,plant_line,JP-NAGOYA-01,LINE-A,,,quality.owner@example.com,true,10,true
+R-002,line_owner,plant_line,JP-NAGOYA-01,LINE-A,,,line.owner@example.com,true,10,true
+R-003,maintenance_owner,plant,JP-NAGOYA-01,,,,maintenance.owner@example.com,true,20,true
+R-004,production_planner,plant,JP-NAGOYA-01,,,,planner@example.com,true,20,true
+R-005,logistics_owner,plant,JP-NAGOYA-01,,,,logistics@example.com,true,20,true
+R-006,sales_owner,customer_product,,,Contoso,CRCA,sales.owner@example.com,true,10,true
+R-007,sales_manager,customer,,,Contoso,,sales.manager@example.com,true,20,true
+R-999,global_fallback,global,,,,,quality.operations@example.com,true,999,true

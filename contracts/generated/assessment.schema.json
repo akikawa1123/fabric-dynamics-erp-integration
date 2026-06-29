@@ -1,0 +1,392 @@
+{
+  "$defs": {
+    "AffectedOrder": {
+      "additionalProperties": false,
+      "properties": {
+        "sales_order_id": {
+          "title": "Sales Order Id",
+          "type": "string"
+        },
+        "customer_name": {
+          "title": "Customer Name",
+          "type": "string"
+        },
+        "impact_classification": {
+          "$ref": "#/$defs/ImpactClassification"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "product_number": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Product Number"
+        },
+        "planned_ship_date": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Planned Ship Date"
+        },
+        "affected_quantity": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Affected Quantity"
+        }
+      },
+      "required": [
+        "sales_order_id",
+        "customer_name",
+        "impact_classification",
+        "reason"
+      ],
+      "title": "AffectedOrder",
+      "type": "object"
+    },
+    "DocumentEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "summary": {
+          "title": "Summary",
+          "type": "string"
+        },
+        "document_id": {
+          "title": "Document Id",
+          "type": "string"
+        },
+        "document_title": {
+          "title": "Document Title",
+          "type": "string"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Url"
+        }
+      },
+      "required": [
+        "id",
+        "summary",
+        "document_id",
+        "document_title"
+      ],
+      "title": "DocumentEvidence",
+      "type": "object"
+    },
+    "EvidenceSource": {
+      "enum": [
+        "incident_event",
+        "fabric",
+        "foundry_iq",
+        "human"
+      ],
+      "title": "EvidenceSource",
+      "type": "string"
+    },
+    "Fact": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "statement": {
+          "title": "Statement",
+          "type": "string"
+        },
+        "source_type": {
+          "$ref": "#/$defs/EvidenceSource"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "source_title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Title"
+        },
+        "source_url": {
+          "anyOf": [
+            {
+              "format": "uri",
+              "maxLength": 2083,
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Url"
+        },
+        "observed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed At"
+        }
+      },
+      "required": [
+        "id",
+        "statement",
+        "source_type",
+        "source_id"
+      ],
+      "title": "Fact",
+      "type": "object"
+    },
+    "Hypothesis": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "statement": {
+          "title": "Statement",
+          "type": "string"
+        },
+        "confidence": {
+          "title": "Confidence",
+          "type": "string"
+        },
+        "status": {
+          "default": "unverified",
+          "title": "Status",
+          "type": "string"
+        },
+        "supporting_evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Supporting Evidence Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "statement",
+        "confidence"
+      ],
+      "title": "Hypothesis",
+      "type": "object"
+    },
+    "ImpactClassification": {
+      "enum": [
+        "confirmed",
+        "candidate",
+        "not_affected"
+      ],
+      "title": "ImpactClassification",
+      "type": "string"
+    },
+    "Persona": {
+      "enum": [
+        "factory",
+        "sales"
+      ],
+      "title": "Persona",
+      "type": "string"
+    },
+    "RecommendedAction": {
+      "additionalProperties": false,
+      "properties": {
+        "priority": {
+          "minimum": 1,
+          "title": "Priority",
+          "type": "integer"
+        },
+        "action": {
+          "title": "Action",
+          "type": "string"
+        },
+        "owner_role": {
+          "title": "Owner Role",
+          "type": "string"
+        },
+        "requires_human_approval": {
+          "default": true,
+          "title": "Requires Human Approval",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "priority",
+        "action",
+        "owner_role"
+      ],
+      "title": "RecommendedAction",
+      "type": "object"
+    },
+    "ToolExecutionStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "tool": {
+          "$ref": "#/$defs/ToolName"
+        },
+        "state": {
+          "$ref": "#/$defs/ToolState"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        }
+      },
+      "required": [
+        "tool",
+        "state"
+      ],
+      "title": "ToolExecutionStatus",
+      "type": "object"
+    },
+    "ToolName": {
+      "enum": [
+        "fabric_data_agent",
+        "foundry_iq"
+      ],
+      "title": "ToolName",
+      "type": "string"
+    },
+    "ToolState": {
+      "enum": [
+        "succeeded",
+        "failed",
+        "skipped"
+      ],
+      "title": "ToolState",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "incident_id": {
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "persona": {
+      "$ref": "#/$defs/Persona"
+    },
+    "confirmed_facts": {
+      "items": {
+        "$ref": "#/$defs/Fact"
+      },
+      "title": "Confirmed Facts",
+      "type": "array"
+    },
+    "affected_orders": {
+      "items": {
+        "$ref": "#/$defs/AffectedOrder"
+      },
+      "title": "Affected Orders",
+      "type": "array"
+    },
+    "document_evidence": {
+      "items": {
+        "$ref": "#/$defs/DocumentEvidence"
+      },
+      "title": "Document Evidence",
+      "type": "array"
+    },
+    "hypotheses": {
+      "items": {
+        "$ref": "#/$defs/Hypothesis"
+      },
+      "title": "Hypotheses",
+      "type": "array"
+    },
+    "recommended_actions": {
+      "items": {
+        "$ref": "#/$defs/RecommendedAction"
+      },
+      "title": "Recommended Actions",
+      "type": "array"
+    },
+    "open_questions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Open Questions",
+      "type": "array"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    },
+    "tool_status": {
+      "items": {
+        "$ref": "#/$defs/ToolExecutionStatus"
+      },
+      "title": "Tool Status",
+      "type": "array"
+    }
+  },
+  "required": [
+    "incident_id",
+    "persona"
+  ],
+  "title": "Assessment",
+  "type": "object"
+}

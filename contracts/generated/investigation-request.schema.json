@@ -1,0 +1,139 @@
+{
+  "$defs": {
+    "Anomaly": {
+      "additionalProperties": false,
+      "properties": {
+        "metric_name": {
+          "title": "Metric Name",
+          "type": "string"
+        },
+        "observed_value": {
+          "title": "Observed Value",
+          "type": "number"
+        },
+        "threshold_value": {
+          "title": "Threshold Value",
+          "type": "number"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "failure_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Failure Count",
+          "type": "integer"
+        },
+        "total_count": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Total Count",
+          "type": "integer"
+        },
+        "defect_rate": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Defect Rate"
+        }
+      },
+      "required": [
+        "metric_name",
+        "observed_value",
+        "threshold_value",
+        "unit"
+      ],
+      "title": "Anomaly",
+      "type": "object"
+    },
+    "Operation": {
+      "enum": [
+        "factory_investigation",
+        "sales_investigation"
+      ],
+      "title": "Operation",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "default": "1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "operation": {
+      "$ref": "#/$defs/Operation"
+    },
+    "incident_id": {
+      "pattern": "^QI-[0-9]{8}-[0-9]{3,}$",
+      "title": "Incident Id",
+      "type": "string"
+    },
+    "detected_at": {
+      "format": "date-time",
+      "title": "Detected At",
+      "type": "string"
+    },
+    "plant_id": {
+      "title": "Plant Id",
+      "type": "string"
+    },
+    "line_id": {
+      "title": "Line Id",
+      "type": "string"
+    },
+    "station_id": {
+      "title": "Station Id",
+      "type": "string"
+    },
+    "product_number": {
+      "title": "Product Number",
+      "type": "string"
+    },
+    "lot_id": {
+      "title": "Lot Id",
+      "type": "string"
+    },
+    "anomaly": {
+      "$ref": "#/$defs/Anomaly"
+    },
+    "dashboard_url": {
+      "anyOf": [
+        {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dashboard Url"
+    }
+  },
+  "required": [
+    "operation",
+    "incident_id",
+    "detected_at",
+    "plant_id",
+    "line_id",
+    "station_id",
+    "product_number",
+    "lot_id",
+    "anomaly"
+  ],
+  "title": "InvestigationRequest",
+  "type": "object"
+}

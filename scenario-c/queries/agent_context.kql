@@ -1,0 +1,86 @@
+// =====================================================================
+// Fabric Data Agent / Microsoft Foundry向け読み取り専用KQL関数
+// 実行先: eh_manufacturing_rti
+// =====================================================================
+
+.create-or-alter function with (
+    folder = "Agent",
+    docstring = "Returns measurements for a specified quality anomaly context."
+)
+fn_quality_anomaly_context(
+    target_product_number:string,
+    target_lot_id:string,
+    target_station_id:string,
+    target_detected_at:datetime,
+    window_before:timespan = 10m,
+    window_after:timespan = 20m
+)
+{
+    let start_time = target_detected_at - window_before;
+    let end_time = target_detected_at + window_after;
+    Telemetry
+    | where event_time between (start_time .. end_time)
+    | where product_number == target_product_number
+    | where lot_id == target_lot_id
+    | where station_id == target_station_id
+    | summarize
+        detected_from = min(event_time),
+        detected_to = max(event_time),
+        failure_count = countif(status == "fail"),
+        warning_count = countif(status == "warn"),
+        total_count = count(),
+        avg_torque_nm = round(avg(torque_nm), 2),
+        max_torque_nm = round(max(torque_nm), 2),
+        max_vibration_mm_s = round(max(vibration_mm_s), 2),
+        max_temperature_c = round(max(temperature_c), 2),
+        max_dimension_dev_um = round(max(dimension_dev_um), 2)
+      by plant_id, line_id, station_id, product_number, lot_id
+    | extend defect_rate = round(todouble(failure_count) / total_count, 3)
+};
+
+.create-or-alter function with (
+    folder = "Agent",
+    docstring = "Returns unshipped fulfillment orders for the same product. Results are candidates because lot allocation is not verified."
+)
+fn_candidate_affected_orders(target_product_number:string)
+{
+    let product_bridge =
+        external_table("ERP_ReturnOrderDetail")
+        | where msdyn_productnumber == target_product_number
+        | summarize by msdyn_productnumber, msdyn_productid, msdyn_productidname;
+    product_bridge
+    | join kind=inner (external_table("ERP_FulfillmentOrderDetail"))
+        on $left.msdyn_productid == $right.msdyn_product
+    | join kind=inner (external_table("ERP_FulfillmentOrder"))
+        on $left.msdyn_fulfillmentid == $right.msdyn_fulfillmentorderid
+    | where msdyn_iomstatename !in ("Shipped", "Cancelled", "Closed")
+    | project
+        product_number = msdyn_productnumber,
+        product_name = msdyn_productidname,
+        fulfillment_order = msdyn_name,
+        status = msdyn_iomstatename,
+        customer = msdyn_customername,
+        planned_ship = msdyn_plannedshipmentdate,
+        ship_to_country = msdyn_shiptocountry,
+        impact_classification = "candidate",
+        impact_reason = "Same product and unshipped order; lot allocation is not verified."
+    | order by planned_ship asc
+    | take 10
+};
+
+.create-or-alter function with (
+    folder = "Agent",
+    docstring = "Returns historical return context for a product."
+)
+fn_product_return_context(target_product_number:string)
+{
+    external_table("ERP_ReturnOrderDetail")
+    | where msdyn_productnumber == target_product_number
+    | summarize
+        return_lines = count(),
+        returning_lots = make_set(msdyn_returninginventorylotid, 20),
+        return_reasons = make_set(msdyn_returnreasonv2, 20),
+        disposition_codes = make_set(msdyn_dispositioncode, 20)
+      by product_number = msdyn_productnumber,
+         product_name = msdyn_productidname
+};
