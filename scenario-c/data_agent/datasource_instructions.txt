@@ -25,4 +25,5 @@
 ■ 注意
 - 状態 msdyn_iomstatename in ('Shipped','Cancelled','Closed') は完了。進行中はそれ以外。
 - ERP はスナップショットのため日付での「直近」絞り込みは基本不要。顧客名は LIKE '%...%' で部分一致。
+- 【型安全・重要】数量(msdyn_invoiceqty)・出荷予定日(msdyn_plannedshipmentdate)・出荷日(msdyn_shipdate)などは varchar 表示値（日付シリアル等が混在）。numeric への CAST/CONVERT・数値での ORDER BY/集計/比較をすると「varchar から numeric への変換エラー」で失敗するため、これらはテキストのまま SELECT し並べ替えに使わない。製品は製品コード(CRCA 等)の文字列一致で絞り、製品GUIDへ数値変換しない。営業の受注抽出は msdyn_customername LIKE '%Contoso%' と製品コード一致を基本に、複雑なGUID結合・数値変換を避ける。
 - Telemetry の「異常」判定は時間窓内で COUNT(*) > 5 かつ defect_rate(=fail/総数) > 0.2 を目安。

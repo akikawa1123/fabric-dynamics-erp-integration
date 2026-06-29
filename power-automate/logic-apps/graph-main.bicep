@@ -10,10 +10,11 @@ param handoffLinkWorkflowName string = 'la-mq-factory-decision-handoff-link-grap
 @description('Azure region.')
 param location string = resourceGroup().location
 
-// Demo personas are sanitized for the public repo. The Teams @mention object IDs
-// below are zeroed placeholders (00000000-...0001/0002); set real Entra user
-// object IDs at deploy time for mentions to resolve. teamsTeamId/teamsChannelId
-// are demo defaults; override per tenant.
+// Values below are sanitized for the public repo. The Teams @mention object IDs
+// are zeroed placeholders (00000000-...0001/0002), and teamsTeamId/teamsChannelId/
+// agentChatUrl default to placeholders. Set real Entra user object IDs, your Team/
+// channel IDs, and your published M365 Copilot agent link at deploy time
+// (e.g. via the parameters file) for mentions, notifications, and links to work.
 @description('Microsoft Graph site path, for example contoso-demo.sharepoint.com:/sites/ManufacturingQualityDemo:')
 param graphSitePath string
 
@@ -29,11 +30,14 @@ param workPackageListId string
 @description('Optional Microsoft Teams API connection shell name for later notification actions.')
 param teamsConnectionName string = 'conn-teams-mq-demo'
 
-@description('Team ID for demo notifications.')
-param teamsTeamId string = '16bd70fa-21a9-4e65-8626-848405c9c95e'
+@description('Team ID for demo notifications. Placeholder; set your real Team ID at deploy time.')
+param teamsTeamId string = '00000000-0000-0000-0000-000000000000'
 
-@description('Channel ID for demo notifications.')
-param teamsChannelId string = '19:780ec8d25d4f4b16b511f55cb76a1aef@thread.tacv2'
+@description('Channel ID for demo notifications. Placeholder; set your real channel ID at deploy time.')
+param teamsChannelId string = '19:00000000000000000000000000000000@thread.tacv2'
+
+@description('M365 Copilot agent deep link used in Teams notifications. Placeholder; set your published agent link at deploy time.')
+param agentChatUrl string = 'https://m365.cloud.microsoft/chat/agent/REPLACE_WITH_YOUR_AGENT_LINK'
 
 var graphAudience = 'https://graph.microsoft.com'
 var graphBase = 'https://graph.microsoft.com/v1.0/sites/${graphSitePath}'
@@ -58,6 +62,9 @@ resource ingressWorkflow 'Microsoft.Logic/workflows@2019-05-01' = {
   identity: {
     type: 'SystemAssigned'
   }
+  dependsOn: [
+    handoffLinkWorkflow
+  ]
   properties: {
     state: 'Enabled'
     connectionReferences: {
@@ -262,7 +269,7 @@ resource ingressWorkflow 'Microsoft.Logic/workflows@2019-05-01' = {
               Body: {
                 body: {
                   contentType: 'html'
-                  content: '<at id="0">Factory Owner</at><br/><b>製造品質異常を検知しました</b><br/>Incident: @{outputs(\'Compose_incident_id\')}<br/>Product: @{triggerBody()?[\'productNumber\']}<br/>Lot: @{triggerBody()?[\'lotId\']}<br/>Station: @{triggerBody()?[\'stationId\']}<br/>Torque: @{triggerBody()?[\'observedValue\']} @{coalesce(triggerBody()?[\'unit\'], \'Nm\')} &gt; @{triggerBody()?[\'thresholdValue\']} @{coalesce(triggerBody()?[\'unit\'], \'Nm\')}<br/>Owner: @{outputs(\'Compose_owner_upn\')}<br/>WorkPackage: @{outputs(\'Compose_work_package_id\')}<br/><br/><b>次のアクション</b><br/>1. <a href=\'https://m365.cloud.microsoft/chat/agent/T_4d898c7f-59af-f0c7-ee98-7aba353f55b6.db594a1e-ebfb-46e1-bfe7-32286ca1707e\'>AIで工場調査を開始</a><br/>2. 質問: <i>今、製造ラインで品質異常は出ていますか？製品コード・ロット・ステーションと、トルクが規格上限(50Nm)を超えた直近イベントを教えて。</i><br/>3. 顧客影響の可能性がある場合は <a href=\'${handoffLinkCallback}&incidentId=@{outputs(\'Compose_incident_id\')}&decision=candidate&productNumber=@{triggerBody()?[\'productNumber\']}&lotId=@{triggerBody()?[\'lotId\']}&customerName=Contoso\'>営業へ候補影響として引き継ぐ</a>'
+                  content: '<at id="0">Factory Owner</at><br/><b>製造品質異常を検知しました</b><br/>Incident: @{outputs(\'Compose_incident_id\')}<br/>Product: @{triggerBody()?[\'productNumber\']}<br/>Lot: @{triggerBody()?[\'lotId\']}<br/>Station: @{triggerBody()?[\'stationId\']}<br/>Torque: @{triggerBody()?[\'observedValue\']} @{coalesce(triggerBody()?[\'unit\'], \'Nm\')} &gt; @{triggerBody()?[\'thresholdValue\']} @{coalesce(triggerBody()?[\'unit\'], \'Nm\')}<br/>Owner: @{outputs(\'Compose_owner_upn\')}<br/>WorkPackage: @{outputs(\'Compose_work_package_id\')}<br/><br/><b>次のアクション</b><br/>1. <a href=\'${agentChatUrl}\'>AIで工場調査を開始</a><br/>2. 質問: <i>トルクが規格上限(50Nm)を超えた直近イベントを、製品・ロット・ステーション・ライン・トルク・時刻・状態つきで教えて。営業へcandidate引き継ぎが必要かも一言で。</i><br/>3. 品質文書も確認: <i>圧入工程でトルクが規格上限を超えた場合の初動対応と過去の8D事例を品質文書から教えて。8Dなど専門用語は初見でも分かるよう一言で説明し、文書IDと出典も。</i><br/>4. 顧客影響の可能性がある場合は <a href=\'${handoffLinkCallback}&incidentId=@{outputs(\'Compose_incident_id\')}&decision=candidate&productNumber=@{triggerBody()?[\'productNumber\']}&lotId=@{triggerBody()?[\'lotId\']}&customerName=Contoso\'>営業へ候補影響として引き継ぐ</a>'
                 }
                 mentions: [
                   {
@@ -519,7 +526,7 @@ resource handoffWorkflow 'Microsoft.Logic/workflows@2019-05-01' = {
               Body: {
                 body: {
                   contentType: 'html'
-                  content: '<at id="0">Sales Owner</at><br/><b>営業引き継ぎ Work Package を作成しました</b><br/>Incident: @{triggerBody()?[\'incidentId\']}<br/>WorkPackage: @{outputs(\'Compose_work_package_id\')}<br/>Customer: @{triggerBody()?[\'customerName\']}<br/>Product: @{triggerBody()?[\'productNumber\']}<br/>Impact: 候補影響(candidate)<br/>Owner: @{outputs(\'Compose_owner_upn\')}<br/><br/><b>次のアクション</b><br/>1. <a href=\'https://m365.cloud.microsoft/chat/agent/T_4d898c7f-59af-f0c7-ee98-7aba353f55b6.db594a1e-ebfb-46e1-bfe7-32286ca1707e\'>AIで営業調査を開始</a><br/>2. 質問: <i>Contoso の進行中の受注を一覧で。出荷予定日・状態・製品・数量も教えて。</i><br/>3. ロット引当が確認できるまで顧客影響は <b>候補影響(candidate)</b> として扱う'
+                  content: '<at id="0">Sales Owner</at><br/><b>営業引き継ぎ Work Package を作成しました</b><br/>Incident: @{triggerBody()?[\'incidentId\']}<br/>WorkPackage: @{outputs(\'Compose_work_package_id\')}<br/>Customer: @{triggerBody()?[\'customerName\']}<br/>Product: @{triggerBody()?[\'productNumber\']}<br/>Impact: 候補影響(candidate)<br/>Owner: @{outputs(\'Compose_owner_upn\')}<br/><br/><b>次のアクション</b><br/>1. <a href=\'${agentChatUrl}\'>AIで営業調査を開始</a><br/>2. 質問: <i>今回の品質異常は @{triggerBody()?[\'productNumber\']} / @{triggerBody()?[\'lotId\']} です。Contoso 関連の進行中受注のうち影響候補を一覧で。ロット引当が未確認なら candidate として扱って。</i><br/>3. ロット引当が確認できるまで顧客影響は <b>候補影響(candidate)</b> として扱う'
                 }
                 mentions: [
                   {
@@ -571,6 +578,9 @@ resource handoffWorkflow 'Microsoft.Logic/workflows@2019-05-01' = {
 resource handoffLinkWorkflow 'Microsoft.Logic/workflows@2019-05-01' = {
   name: handoffLinkWorkflowName
   location: location
+  dependsOn: [
+    handoffWorkflow
+  ]
   properties: {
     state: 'Enabled'
     definition: {

@@ -96,15 +96,19 @@ def _row(ts, product, line, station, lot, torque, vib, temp, dim) -> dict:
     }
 
 
-def generate(now, anomaly_product, normal, anomaly, recovery, seed):
+def generate(now, anomaly_product, normal, anomaly, recovery, seed, keep_open=False):
     """平常→異常→回復のシナリオで合成テレメトリ行を生成する。
 
     時間フィルタは MAX(EventEnqueuedUtcTime) 基準の相対窓のため、絶対時刻ではなく
     「最新からの相対分布」が重要。異常は直近30分窓に収まる 6-25 分前に集約する。
+    keep_open=True のときは異常を直近0-20分に置き回復を抑制し、最新時刻＝異常に揃える
+    （デモで「異常継続中(open)」を確実に見せ、回復で解消済みに見えるのを防ぐ）。
     """
     rng = random.Random(seed)
     today = now.strftime("%Y%m%d")
     rows = []
+    if keep_open:
+        recovery = 0
 
     # 平常運転（全製品・全ステーション、過去60分に分布）
     for _ in range(normal):
@@ -124,10 +128,12 @@ def generate(now, anomaly_product, normal, anomaly, recovery, seed):
             )
         )
 
-    # 異常（固定ロット・ST-07-PRESS・直近6-25分、圧入トルクが上限を連続超過）
+    # 異常（固定ロット・ST-07-PRESS・圧入トルクが上限を連続超過）
+    # keep_open=True は直近0-20分（最新＝異常）、それ以外は直近6-25分。
+    anomaly_window = (0, 20) if keep_open else (6, 25)
     anomaly_lot = f"LOT-{anomaly_product}-{today}-007"
     for _ in range(anomaly):
-        ts = now - timedelta(minutes=rng.uniform(6, 25))
+        ts = now - timedelta(minutes=rng.uniform(*anomaly_window))
         rows.append(
             _row(
                 ts,
@@ -176,6 +182,11 @@ def main():
     ap.add_argument("--recovery", type=int, default=40, help="回復運転の行数")
     ap.add_argument("--seed", type=int, default=None, help="乱数シード（再現用、任意）")
     ap.add_argument(
+        "--keep-open",
+        action="store_true",
+        help="異常を最新時刻まで継続させ回復を抑制（デモで open incident を確実に見せる）",
+    )
+    ap.add_argument(
         "--mode",
         choices=["overwrite", "append"],
         default="overwrite",
@@ -190,7 +201,7 @@ def main():
 
     now = datetime.now(timezone.utc).replace(microsecond=0)
     rows, anomaly_lot = generate(
-        now, args.anomaly_product, args.normal, args.anomaly, args.recovery, args.seed
+        now, args.anomaly_product, args.normal, args.anomaly, args.recovery, args.seed, args.keep_open
     )
 
     token = DefaultAzureCredential().get_token("https://storage.azure.com/.default").token

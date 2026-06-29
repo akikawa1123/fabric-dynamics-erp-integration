@@ -26,6 +26,7 @@
 - 完了済み受注は msdyn_iomstatename in ('Shipped','Cancelled','Closed')。「進行中／未出荷」はそれ以外。
 - 顧客は msdyn_customername（部分一致は LIKE '%...%'）。製品コード例: CRCA, BRFI-SP, AIDU, AILI, AUDR, PRBRLI。
 - ERP は参照データ（スナップショット）。時刻列での絞り込みは基本不要。
+- 【型安全・重要】ERP の数量(msdyn_invoiceqty)・出荷予定日・出荷日は varchar 表示値（日付シリアル等が混在）。numeric への CAST/CONVERT・数値 ORDER BY/集計/比較は「varchar→numeric 変換エラー」で失敗するため行わない（テキストのまま SELECT）。製品は製品コード(CRCA 等)の文字列一致で絞り、製品GUIDへ数値変換しない。営業抽出は msdyn_customername LIKE '%Contoso%' ＋製品コード一致を基本に、複雑なGUID結合・数値変換を避ける。
 
 【クロスドメイン結合パス】
 - Telemetry.product_number = ERP_ReturnOrderDetail.msdyn_productnumber（製品コード→製品GUID ブリッジ）

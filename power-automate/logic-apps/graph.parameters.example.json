@@ -13,6 +13,15 @@
     },
     "workPackageListId": {
       "value": "fec90a29-1a58-42a8-98a7-f3b0266896f2"
+    },
+    "teamsTeamId": {
+      "value": "00000000-0000-0000-0000-000000000000"
+    },
+    "teamsChannelId": {
+      "value": "19:00000000000000000000000000000000@thread.tacv2"
+    },
+    "agentChatUrl": {
+      "value": "https://m365.cloud.microsoft/chat/agent/REPLACE_WITH_YOUR_AGENT_LINK"
     }
   }
 }
