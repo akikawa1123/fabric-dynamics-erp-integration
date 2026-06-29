@@ -25,7 +25,7 @@ Power Automate のUI作成が重い場合の代替として、Logic Apps Consump
   の作成/更新を確認済み。`routeUsed` は ingress=`factory_quality_owner`,
   handoff=`sales_owner`。
 - Teams notification runtime test: `conn-teams-mq-demo` 認証後、Graph版 ingress / handoff
-  の両方で Teams connector (`HttpRequest`) によるチャネル投稿が成功。Ingress通知は `manufacturing-quality-agent-obo` 直リンク（https://m365.cloud.microsoft/chat/agent/T_4d898c7f-59af-f0c7-ee98-7aba353f55b6.db594a1e-ebfb-46e1-bfe7-32286ca1707e）と営業引き継ぎGETリンクを含む。GETリンクから `WP-S-20260626-172041` 作成を確認済み。
+  の両方で Teams connector (`HttpRequest`) によるチャネル投稿が成功。Ingress通知は `manufacturing-quality-agent-obo` 直リンク（デプロイ時に自分の公開エージェントのリンクを設定）と営業引き継ぎGETリンクを含む。GETリンクから `WP-S-...` 作成を確認済み。
 
 ## 構成
 
@@ -41,10 +41,10 @@ Fabric Activator or curl
 
 通知先:
 
-- Team ID: `16bd70fa-21a9-4e65-8626-848405c9c95e`
-- Team: `Operations Department`
-- Channel ID: `19:780ec8d25d4f4b16b511f55cb76a1aef@thread.tacv2`
-- Channel: `Manufacturing Quality Alerts`
+- Team ID: `<your-team-id>`（デプロイ時に設定。bicep param `teamsTeamId`）
+- Team: `Operations Department`（例）
+- Channel ID: `<your-channel-id>`（デプロイ時に設定。bicep param `teamsChannelId`）
+- Channel: `Manufacturing Quality Alerts`（例）
 
 Teams通知は Graph 版に追加済み。SharePoint への deterministic workflow は Managed Identity
 + Microsoft Graph で動作し、Teams 通知は `conn-teams-mq-demo` の Microsoft Teams connector を使う。
@@ -181,8 +181,8 @@ Graph版はLogic AppのSystem Assigned Managed Identityへ Microsoft Graph
   - Foundry account/project RBAC assigned: `Foundry User`, `Foundry Agent Consumer`, `Foundry Project Runtime User`.
   - Fabric workspace role: `Contributor`.
 - Activator `factory_activator` Teams message recipient is `factory.owner@example.com`.
-- Activator message now points to the M365 Copilot agent direct link:
-  `https://m365.cloud.microsoft/chat/agent/T_4d898c7f-59af-f0c7-ee98-7aba353f55b6.db594a1e-ebfb-46e1-bfe7-32286ca1707e`
+- Activator message now points to the M365 Copilot agent direct link (set your own at deploy time):
+  `https://m365.cloud.microsoft/chat/agent/<your-agent-link>`
 
 ## Activator direct orchestration option
 
