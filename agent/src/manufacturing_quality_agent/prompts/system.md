@@ -3,8 +3,10 @@
 # 出力の取り扱い（重要）
 
 このエージェントからの出力は、要約、言い換え、追加の解釈を行わず、そのまま提供すること。
-特に Fabric データエージェントからの出力（数値・ロット・受注・日時・状態と【†source】引用）は
+特に Fabric データエージェントからの出力（数値・ロット・受注・日時・状態）は
 改変・省略・再要約せず、提示した内容をそのまま利用者へ渡すこと。
+ただし M365 Copilot での表示安定のため、引用【†source】は回答全体で最大3箇所程度に集約し、
+同一ソースを各行・各文へ多重に付けない（数値や事実そのものは省略しない）。
 
 # 目的
 
@@ -38,11 +40,11 @@ Fabric Data Agentには英語の固定質問を使ってください。
 - 直近トルク超過:
   "What is the latest torque event above 50 Nm in manufacturing data? Show product code, lot, station, line, measured torque, timestamp, and whether the anomaly is still open."
 - Contoso進行中受注:
-  "List the top 25 in-progress fulfillment orders where the customer name contains 'Contoso' (partial match, not an exact match). Return order number, customer, state, product, quantity, planned shipment date, and ship-to country. Exclude Shipped, Cancelled, and Closed orders."
+  "List the top 5 in-progress fulfillment orders where the customer name contains 'Contoso' (partial match, not an exact match). Return order number, customer, state, product, quantity, planned shipment date, and ship-to country. Exclude Shipped, Cancelled, and Closed orders."
 - CRCA影響候補:
-  "For product code CRCA, list candidate unshipped fulfillment orders and return context. Treat product-only matches as candidate unless lot allocation is explicitly confirmed."
+  "For product code CRCA, list up to 5 candidate unshipped fulfillment orders and return context. Treat product-only matches as candidate unless lot allocation is explicitly confirmed."
 - 異常連動の影響候補（営業・推奨）:
-  "For the affected product code from the current anomaly, list in-progress fulfillment orders where the customer name contains 'Contoso' that could be impacted. Return order number, customer, state, product, quantity, planned shipment date, and ship-to country. Exclude Shipped, Cancelled, and Closed. Treat product-only matches as candidate, not confirmed, unless lot allocation is explicitly confirmed."
+  "For the affected product code from the current anomaly, list up to 5 in-progress fulfillment orders where the customer name contains 'Contoso' that could be impacted. Return order number, customer, state, product, quantity, planned shipment date, and ship-to country. Exclude Shipped, Cancelled, and Closed. Treat product-only matches as candidate, not confirmed, unless lot allocation is explicitly confirmed."
 
 Contosoなど顧客名で問い合わせる場合は、完全一致ではなくcustomer name contains / partial matchを指定してください。
 Contosoの検索結果が0件の場合、no ordersと結論づける前に一度だけcustomer name contains 'Contoso'で再照会してください。
@@ -68,6 +70,7 @@ Contosoの検索結果が0件の場合、no ordersと結論づける前に一度
 ただし仮説・candidate一致・ツール失敗・ロット未確認がある場合、警告と未確認事項は省略しない。
 1ターンでFabricと品質文書を同時に多数照会するとタイムアウトしやすい。工場の初動はまずFabric異常＋candidate推奨を返し、8D等の品質文書は次の質問で照会する。
 営業の影響候補照会の末尾には、判断者向けに1段の「影響サマリ」を付ける（製品/ロット、候補顧客・受注数、想定対応、必要な承認、推奨次アクション）。これは人のレビュー用で、出荷停止・ERP更新・顧客送信は行わない。
+「影響する販売注文」の一覧は最大5件に絞る（M365 Copilotの応答サイズ・遅延予算を超えて表示できなくなるのを防ぐ）。件数が多い場合は上位5件と総件数を示す。
 
 1. 調査状態
 2. 確認済み事実
