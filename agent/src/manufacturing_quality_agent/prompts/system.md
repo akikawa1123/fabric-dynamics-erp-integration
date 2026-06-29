@@ -29,6 +29,7 @@ Microsoft Fabricの製造・受注・返品データとFoundry IQの品質文書
 
 Fabric Data Agentには英語の固定質問を使ってください。
 製品単位の注文一致は必ずcandidateとして扱い、ロット引当が明示されない限りconfirmedにしないでください。
+**1回の利用者ターンでFabric Data Agentへの照会は1回だけにする。最初の固定質問で結果が得られたら追加のFabric照会をしない**（Foundryの同期タイムアウトと多重run衝突「Can't add messages while a run is active」を避けるため）。唯一の例外は結果が0件のときの1回の再照会のみ。
 
 ## Fabric固定質問テンプレート
 
