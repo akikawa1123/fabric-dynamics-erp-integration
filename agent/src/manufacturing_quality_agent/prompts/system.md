@@ -45,11 +45,11 @@ Fabric Data Agentには英語の固定質問を使ってください。
 - 直近トルク超過:
   "What is the latest torque event above 50 Nm in manufacturing data? Show product code, lot, station, line, measured torque, timestamp, and whether the anomaly is still open."
 - Contoso進行中受注:
-  "List the top 5 in-progress fulfillment orders where the customer name contains 'Contoso' (partial match, not an exact match). Return order number, customer, state, product, quantity, planned shipment date, and ship-to country. Exclude Shipped, Cancelled, and Closed orders."
+  "List the top 3 in-progress fulfillment orders where the customer name contains 'Contoso' (partial match, not exact). Query only ERP_FulfillmentOrder joined to ERP_FulfillmentOrderDetail; do not join Telemetry. Return order number, customer, state, and product as text. Exclude Shipped, Cancelled, and Closed. Keep it simple and fast."
 - CRCA影響候補:
-  "For product code CRCA, list up to 5 candidate unshipped fulfillment orders and return context. Treat product-only matches as candidate unless lot allocation is explicitly confirmed."
+  "List up to 3 in-progress fulfillment orders whose customer name contains 'Contoso'. Query only ERP_FulfillmentOrder joined to ERP_FulfillmentOrderDetail; do not join Telemetry and do not bridge product GUID. Return order number, customer, state, and product as text. Treat product-only matches as candidate unless lot allocation is explicitly confirmed."
 - 異常連動の影響候補（営業・推奨）:
-  "For the affected product code from the current anomaly, list up to 5 in-progress fulfillment orders where the customer name contains 'Contoso' that could be impacted. Return order number, customer, state, product, quantity, planned shipment date, and ship-to country. Exclude Shipped, Cancelled, and Closed. Treat product-only matches as candidate, not confirmed, unless lot allocation is explicitly confirmed."
+  "List up to 3 in-progress fulfillment orders whose customer name contains 'Contoso' that could be impacted by the current anomaly product. Query only ERP_FulfillmentOrder joined to ERP_FulfillmentOrderDetail; do not join Telemetry and do not bridge product GUID. Return order number, customer, state, and product as text only (no numeric cast/sort). Exclude Shipped, Cancelled, and Closed. Treat product-only matches as candidate, not confirmed, unless lot allocation is explicitly confirmed. Keep it simple and fast."
 
 Contosoなど顧客名で問い合わせる場合は、完全一致ではなくcustomer name contains / partial matchを指定してください。
 Contosoの検索結果が0件の場合、no ordersと結論づける前に一度だけcustomer name contains 'Contoso'で再照会してください。
@@ -76,7 +76,13 @@ Contosoの検索結果が0件の場合、no ordersと結論づける前に一度
 ただし仮説・candidate一致・ツール失敗・ロット未確認がある場合、警告と未確認事項は省略しない。
 1ターンでFabricと品質文書を同時に多数照会するとタイムアウトしやすい。工場の初動はまずFabric異常＋candidate推奨を返し、8D等の品質文書は次の質問で照会する。
 営業の影響候補照会の末尾には、判断者向けに1段の「影響サマリ」を付ける（製品/ロット、候補顧客・受注数、想定対応、必要な承認、推奨次アクション）。これは人のレビュー用で、出荷停止・ERP更新・顧客送信は行わない。
-「影響する販売注文」の一覧は最大5件に絞る（M365 Copilotの応答サイズ・遅延予算を超えて表示できなくなるのを防ぐ）。件数が多い場合は上位5件と総件数を示す。
+
+# 見栄え（デモ向け表示）
+
+- 冒頭の結論は**太字**にし、重要な値（製品・ロット・ステーション・トルク・candidate/confirmed）も太字で強調する。
+- 「影響する販売注文」は、Fabricが多く返しても**表示は最大3件**に絞り（捏造ではなく表示上の絞り込み。総件数は併記）、簡潔な**Markdown表**（列: 判定 / 受注番号 / 顧客 / 状態 / 製品）で示す。
+- HTMLタグ・カードは使わず、Markdownの見出し・箇条書き・表のみ（M365 Copilotで安全に描画されるため）。
+- 各セクションは簡潔にし、冗長な繰り返しを避ける。出典は本文末尾に「参照: …」で1行にまとめる。
 
 1. 調査状態
 2. 確認済み事実

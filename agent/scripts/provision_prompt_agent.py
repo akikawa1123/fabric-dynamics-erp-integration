@@ -58,8 +58,13 @@ def main() -> None:
     )
     ap.add_argument(
         "--model",
-        default=os.environ.get("AZURE_AI_MODEL_DEPLOYMENT_NAME", "gpt-5.4"),
-        help="Model deployment name for orchestration (env: AZURE_AI_MODEL_DEPLOYMENT_NAME)",
+        default=os.environ.get("PROMPT_AGENT_MODEL", "gpt-5.4-mini"),
+        help=(
+            "Model deployment for orchestration. Default gpt-5.4-mini: ~5-10s faster than "
+            "gpt-5.4 (sales ~27s vs ~40s) which keeps M365 Copilot under its response budget, "
+            "with candidate discipline / plain-text formatting preserved. Override via "
+            "--model or env PROMPT_AGENT_MODEL."
+        ),
     )
     ap.add_argument("--agent-name", default="manufacturing-quality-agent-obo")
     ap.add_argument("--fabric-connection-name", default="da_manufacturing_erp")
