@@ -283,6 +283,27 @@ M365 Copilotで聞く（異常連動で影響候補を絞る）:
 
 会議作成・メール送信は承認後に行う。
 
+**Coworkでの入力例**（スキルは Cowork 側に導入済み。WorkPackage ID を指定して起動する）:
+
+工場（`factory-quality-response`、対象は例: `WP-F-...`）:
+
+```text
+SharePointのMQ_WorkPackagesにある私担当の未処理factory Work Package（WP-F-YYYYMMDD-XXXXXX）を起点に、暫定封じ込め対応を準備して。確認済み事実・影響候補・必須参加者UPNを読み、必須参加者は変えずに全員が空いている最短30分枠を提案。暫定封じ込め計画書(Word)と再検査チェックリスト(Excel)のドラフトも作って。会議作成は私が承認するまでしないで。設備停止や出荷停止はしないで。
+```
+
+営業（`sales-customer-impact-response`、対象は例: `WP-S-...`）:
+
+```text
+MQ_WorkPackagesの私担当の未処理sales Work Package（WP-S-YYYYMMDD-XXXXXX）を起点に、顧客影響対応を準備して。confirmedとcandidateを分けて読み、必須参加者UPNは変えずに空き時間を確認、顧客影響確認会議を提案。顧客説明のPowerPointと初報メール案も作って。原因は未確定、影響はcandidateと明記。私の承認前に会議作成やメール送信はしないで。
+```
+
+入力のコツ:
+
+- WorkPackage ID を必ず指定（曖昧だと別案件を拾う）。
+- 「承認するまで会議作成・メール送信しない」を毎回明記（スキルにも内蔵だが念押し）。
+- candidate / 未検証を維持（営業は confirmed にしない）。
+- 参加者は `required_participants_upn` をそのまま使い、増減させない。
+
 ### デモの一言
 
 > Fabric Activator相当のイベントをLogic Appsが受け取り、StakeholderRoutingで担当者を決定し、
