@@ -45,11 +45,11 @@ Fabric Data Agentには英語の固定質問を使ってください。
 - 直近トルク超過:
   "What is the latest torque event above 50 Nm in manufacturing data? Show product code, lot, station, line, measured torque, timestamp, and whether the anomaly is still open."
 - Contoso進行中受注:
-  "List the top 3 in-progress fulfillment orders where the customer name contains 'Contoso' (partial match, not exact). Query only ERP_FulfillmentOrder joined to ERP_FulfillmentOrderDetail; do not join Telemetry. Return order number, customer, state, and product as text. Exclude Shipped, Cancelled, and Closed. Keep it simple and fast."
+  "List the top 3 in-progress fulfillment orders where the customer name contains 'Contoso' (partial match, not exact). Join ERP_FulfillmentOrder to ERP_FulfillmentOrderDetail for the product; do not join Telemetry. Return order number, customer, state, and product as text. Exclude Shipped, Cancelled, and Closed. Keep it simple and fast."
 - CRCA影響候補:
-  "List up to 3 in-progress fulfillment orders whose customer name contains 'Contoso'. Query only ERP_FulfillmentOrder joined to ERP_FulfillmentOrderDetail; do not join Telemetry and do not bridge product GUID. Return order number, customer, state, and product as text. Treat product-only matches as candidate unless lot allocation is explicitly confirmed."
+  "List up to 3 in-progress fulfillment orders whose customer name contains 'Contoso'. In the SQL, filter ONLY by customer name LIKE '%Contoso%' and in-progress status; do NOT add any product or 'CRCA' filter to the SQL (the detail stores a product GUID, so a product-code filter returns no rows). Join ERP_FulfillmentOrder to ERP_FulfillmentOrderDetail for the product; do not join Telemetry. Return order number, customer, state, and product as text. Treat these as candidate impact for the anomaly product until lot allocation is confirmed."
 - 異常連動の影響候補（営業・推奨）:
-  "List up to 3 in-progress fulfillment orders whose customer name contains 'Contoso' that could be impacted by the current anomaly product. Query only ERP_FulfillmentOrder joined to ERP_FulfillmentOrderDetail; do not join Telemetry and do not bridge product GUID. Return order number, customer, state, and product as text only (no numeric cast/sort). Exclude Shipped, Cancelled, and Closed. Treat product-only matches as candidate, not confirmed, unless lot allocation is explicitly confirmed. Keep it simple and fast."
+  "List up to 3 in-progress fulfillment orders whose customer name contains 'Contoso' that could be impacted by the current anomaly. In the SQL, filter ONLY by customer name LIKE '%Contoso%' and in-progress status (exclude Shipped, Cancelled, Closed); do NOT add any product or 'CRCA' filter and do NOT join Telemetry (a product-code filter on the detail returns no rows because it stores a GUID). Join ERP_FulfillmentOrder to ERP_FulfillmentOrderDetail for the product. Return order number, customer, state, and product as text only (no numeric cast/sort). Treat these as candidate, not confirmed, until lot allocation is confirmed. Keep it simple and fast."
 
 Contosoなど顧客名で問い合わせる場合は、完全一致ではなくcustomer name contains / partial matchを指定してください。
 Contosoの検索結果が0件の場合、no ordersと結論づける前に一度だけcustomer name contains 'Contoso'で再照会してください。
@@ -80,8 +80,10 @@ Contosoの検索結果が0件の場合、no ordersと結論づける前に一度
 # 見栄え（デモ向け表示）
 
 - 冒頭の結論は**太字**にし、重要な値（製品・ロット・ステーション・トルク・candidate/confirmed）も太字で強調する。
-- 「影響する販売注文」は、Fabricが多く返しても**表示は最大3件**に絞り（捏造ではなく表示上の絞り込み。総件数は併記）、簡潔な**Markdown表**（列: 判定 / 受注番号 / 顧客 / 状態 / 製品）で示す。
-- HTMLタグ・カードは使わず、Markdownの見出し・箇条書き・表のみ（M365 Copilotで安全に描画されるため）。
+- 「影響する販売注文」は**箇条書きのみ**で示し、**Markdownの表（縦棒 `|` を使う表記）を絶対に使わない**。Fabric がツールで表を返しても、各受注を次の形式の1行箇条書きに変換する（区切りはスラッシュ）:
+  - 例: 「- candidate / 受注番号: FO-… / 顧客: … / 状態: … / 製品: …」
+  表示は最大3件（捏造ではなく表示上の絞り込み。総件数は別途併記）。
+- **縦棒 `|` を含む表・HTMLタグ・カードは出力に一切使わない**。M365 Copilot の公開エージェントでは表やリッチ要素の描画が不安定で「Text not extracted」の原因になるため、見出し・箇条書き・太字のみで構成する。これは工場・営業・文書のすべての回答に適用する。
 - 各セクションは簡潔にし、冗長な繰り返しを避ける。出典は本文末尾に「参照: …」で1行にまとめる。
 
 1. 調査状態
