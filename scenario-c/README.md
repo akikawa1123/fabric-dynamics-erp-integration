@@ -95,6 +95,13 @@ python -m venv .venv
 
 # 平常運転のみ
 .\.venv\Scripts\python telemetry_sender.py --mode eventstream --normal-only
+
+# デモ開始: 古いデータを全削除してから送信(推奨)
+.\.venv\Scripts\python telemetry_sender.py --reset --mode eventstream --rate 10 `
+    --normal-seconds 15 --anomaly-seconds 30 --recovery-seconds 0 --anomaly-product CRCA
+
+# クリーンアップのみ(送信しない)
+.\.venv\Scripts\python telemetry_sender.py --reset-only
 ```
 
 ### 主なオプション
@@ -108,6 +115,13 @@ python -m venv .venv
 | `--anomaly-product` | `CRCA` | 異常を注入する製品コード |
 | `--loop` | off | フェーズを無限ループ |
 | `--normal-only` | off | 平常運転のみ送信 |
+| `--reset` | off | 送信前に Lakehouse/KQL の Telemetry を全削除(古い時系列データの掃除) |
+| `--reset-only` | off | Lakehouse/KQL を全削除して終了(送信しない) |
+
+> **クリーンアップの仕組み**: 何度もデモすると Telemetry に古い時系列が溜まるため、`--reset` で毎回リセットできる。
+> - **KQL(Eventhouse)**: `.clear table Telemetry data` で即時クリア（スキーマ・ポリシーは保持）。
+> - **Lakehouse**: SQL エンドポイントは読み取り専用のため、OneLake 上の Telemetry テーブルを**削除(ドロップ)**し、`--mode eventstream` 送信で**約1分で再作成**される。
+> - そのため `--reset` は **`--mode eventstream` と併用**し、Eventstream(`es_client_telemetry`)が**実行中**であること。送信しないとテーブルが空のままになる。
 
 ## 複合分析の実行
 
