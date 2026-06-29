@@ -237,12 +237,12 @@ M365 Copilotで聞く（まず軽い異常確認＋candidate推奨）:
 続けて品質文書（任意の2問目。1ターンに詰め込むとタイムアウトしやすいので分ける）:
 
 ```text
-圧入工程でトルクが規格上限を超えた場合の初動対応と、過去の8D事例を品質文書から教えて。文書IDと出典も。
+圧入工程でトルクが規格上限を超えた場合の初動対応と、過去の8D事例を品質文書から教えて。8Dなど専門用語は初見でも分かるよう一言で説明して。文書IDと出典も。
 ```
 
 見せるもの:
 - 冒頭1行サマリ（CRCA/LOT/ST-07-PRESS、50Nm超過、candidate引き継ぎ推奨）
-- Fabric OBOでCRCA/LOT/ST-07-PRESSの事実、2問目でFoundry IQの8D/PFMEA/Control Plan/校正手順
+- Fabric OBOでCRCA/LOT/ST-07-PRESSの事実、2問目でFoundry IQの8D/PFMEA/Control Plan/校正手順（8D等は平易な注釈つき）
 - 原因仮説は未検証、設備停止/出荷停止は自動実行しない（推奨は人のレビュー用）
 
 ### Step 3: 工場担当者が営業へcandidate引き継ぎ
