@@ -1,0 +1,35 @@
+# toolbox.yaml
+#
+# Adapted from the official Microsoft Foundry sample
+# samples/python/hosted-agents/agent-framework/responses/17-foundry-iq-toolbox/toolbox.yaml
+# (github.com/microsoft-foundry/foundry-samples). Only the connection id,
+# description, and naming are changed for this repo (Task 006).
+#
+# Defines the toolbox this agent consumes. It exposes the Foundry IQ knowledge
+# base's MCP endpoint as a single tool (knowledge_base_retrieve), reached through
+# the `mq-quality-kb-mcp` connection.
+#
+# Create the connection (once) from the KB MCP endpoint printed by provision_kb.py:
+#   azd ai connection create mq-quality-kb-mcp --kind remote-tool --force \
+#     --target "<kb-mcp-endpoint>" --auth-type agentic-identity \
+#     --audience https://search.azure.com --metadata "ApiType=Azure"
+#
+# Then create the toolbox from this file (after substituting ${KB_MCP_ENDPOINT}):
+#   azd ai toolbox create mq-quality-toolbox --from-file ./toolbox.yaml
+#
+# `server_url` is the knowledge base's MCP endpoint and `project_connection_id`
+# supplies the keyless Agentic Identity auth for it. Replace ${KB_MCP_ENDPOINT}
+# with the endpoint provision_kb.py printed before creating the toolbox.
+#
+# Copy the versioned MCP endpoint the create command prints (or the deterministic
+# `<project-endpoint>/toolboxes/mq-quality-toolbox/mcp?api-version=v1`) and set it
+# as the TOOLBOX_ENDPOINT environment variable. The agent connects to that
+# endpoint at runtime using its managed identity (Agentic Identity).
+description: Foundry IQ 品質ナレッジベース（manufacturing-quality）を単一エンドポイントで公開
+tools:
+  - type: mcp
+    name: knowledge_base
+    server_label: knowledge_base
+    server_url: ${KB_MCP_ENDPOINT}
+    project_connection_id: mq-quality-kb-mcp
+    require_approval: never

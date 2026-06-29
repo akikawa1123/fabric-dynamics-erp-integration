@@ -1,0 +1,50 @@
+{
+  "type": "AdaptiveCard",
+  "$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "製造品質異常を検知しました",
+      "weight": "Bolder",
+      "size": "Large"
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        {
+          "title": "インシデント",
+          "value": "${incidentId}"
+        },
+        {
+          "title": "製品",
+          "value": "${productNumber}"
+        },
+        {
+          "title": "ロット",
+          "value": "${lotId}"
+        },
+        {
+          "title": "設備",
+          "value": "${stationId}"
+        },
+        {
+          "title": "異常",
+          "value": "${observedValue} ${unit} / 上限 ${thresholdValue} ${unit}"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "Dashboard",
+      "url": "${dashboardUrl}"
+    },
+    {
+      "type": "Action.OpenUrl",
+      "title": "AIで工場調査",
+      "url": "${agentDeepLink}"
+    }
+  ]
+}

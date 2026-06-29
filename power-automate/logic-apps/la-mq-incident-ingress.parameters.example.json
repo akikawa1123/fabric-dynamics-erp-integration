@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "workflowName": {
+      "value": "la-mq-incident-ingress"
+    },
+    "siteUrl": {
+      "value": "https://contoso-demo.sharepoint.com/sites/ManufacturingQualityDemo"
+    },
+    "routingListName": {
+      "value": "MQ_StakeholderRouting"
+    },
+    "incidentListName": {
+      "value": "MQ_QualityIncidents"
+    },
+    "workPackageListName": {
+      "value": "MQ_WorkPackages"
+    }
+  }
+}

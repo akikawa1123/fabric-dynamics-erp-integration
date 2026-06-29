@@ -1,7 +1,7 @@
 # 製造業デモ — 使えそうな ERP テーブルとシナリオ（調査メモ）
 
 調査日: 2026-06-24
-対象テナント: `ABSx68635792.onmicrosoft.com`
+対象テナント: `contoso-demo.onmicrosoft.com`
 Fabric ワークスペース: `ai-seall-hackthon2026`（westus3）
 Lakehouse: `dataverse_v4_cds2_workspace_unqb0962e2eca4df111b31f6045bd003`
 SQL 分析エンドポイント: `dektha4djnqevaycdxm6baojri-g2w2k4lyqyxe7ejxgbyktidj4y.datawarehouse.fabric.microsoft.com`

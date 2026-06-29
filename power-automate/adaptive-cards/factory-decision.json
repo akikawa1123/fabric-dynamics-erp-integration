@@ -1,0 +1,51 @@
+{
+  "type": "AdaptiveCard",
+  "$schema": "https://adaptivecards.io/schemas/adaptive-card.json",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "TextBlock",
+      "text": "顧客影響の扱いを選択してください",
+      "weight": "Bolder"
+    },
+    {
+      "type": "TextBlock",
+      "text": "ロット引当が未確認の場合は、影響候補を選択してください。",
+      "wrap": true
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.Submit",
+      "title": "影響確認済み",
+      "data": {
+        "decision": "confirmed",
+        "incidentId": "${incidentId}"
+      }
+    },
+    {
+      "type": "Action.Submit",
+      "title": "影響候補・営業へ確認依頼",
+      "data": {
+        "decision": "candidate",
+        "incidentId": "${incidentId}"
+      }
+    },
+    {
+      "type": "Action.Submit",
+      "title": "影響なし",
+      "data": {
+        "decision": "none",
+        "incidentId": "${incidentId}"
+      }
+    },
+    {
+      "type": "Action.Submit",
+      "title": "追加調査",
+      "data": {
+        "decision": "reinvestigate",
+        "incidentId": "${incidentId}"
+      }
+    }
+  ]
+}

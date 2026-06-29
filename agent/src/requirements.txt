@@ -1,0 +1,18 @@
+# Foundry hosting + Agent Framework（deploy / local run の実行時依存）。
+# 公式 01-basic sample の narrow subpackages を踏襲する。
+# バージョン固定: ローカルで factory/sales live を検証した版に合わせ、remote_build が
+# 別版を解決して Fabric preview tool（.as_dict() 回避）の挙動が変わるのを防ぐ。
+agent-framework-foundry==1.8.2
+agent-framework-foundry-hosting==1.0.0a260618
+mcp<2,>=1.24.0
+
+# クラウド認証 / HTTP（manufacturing_quality_agent/integrations/agent_factory.py が使用）。
+azure-identity
+httpx
+
+# ドメインモデル / 設定（manufacturing_quality_agent パッケージ）。
+pydantic>=2.10
+pydantic-settings>=2.7
+
+# debugpy enables local debugging of this agent with the Foundry Toolkit VS Code extension.
+debugpy

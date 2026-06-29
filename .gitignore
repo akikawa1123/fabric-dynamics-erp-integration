@@ -6,11 +6,27 @@ sm_fulfillment_analytics/
 install_pbi_skill.ps1
 
 # === Python ===
-.venv/
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# === 仮想環境 / ビルド ===
+.venv/
+*.egg-info/
+dist/
+build/
 
 # === エディタ / OS ===
 .vscode/
 .DS_Store
 Thumbs.db
+
+# === Secrets / 環境変数（commit禁止）===
+.env
+.env.*
+!.env.example
+
+# === azd / Foundry Hosted Agent ===
+.azure/

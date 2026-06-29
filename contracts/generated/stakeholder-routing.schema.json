@@ -1,0 +1,119 @@
+{
+  "$defs": {
+    "RoleCode": {
+      "enum": [
+        "factory_quality_owner",
+        "line_owner",
+        "maintenance_owner",
+        "production_planner",
+        "logistics_owner",
+        "sales_owner",
+        "sales_manager",
+        "global_fallback"
+      ],
+      "title": "RoleCode",
+      "type": "string"
+    },
+    "ScopeType": {
+      "enum": [
+        "plant_line",
+        "plant",
+        "customer_product",
+        "customer",
+        "product",
+        "global"
+      ],
+      "title": "ScopeType",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "routing_id": {
+      "title": "Routing Id",
+      "type": "string"
+    },
+    "role_code": {
+      "$ref": "#/$defs/RoleCode"
+    },
+    "scope_type": {
+      "$ref": "#/$defs/ScopeType"
+    },
+    "plant_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Plant Id"
+    },
+    "line_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Line Id"
+    },
+    "customer_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Customer Name"
+    },
+    "product_number": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Product Number"
+    },
+    "user_upn": {
+      "title": "User Upn",
+      "type": "string"
+    },
+    "is_primary": {
+      "default": false,
+      "title": "Is Primary",
+      "type": "boolean"
+    },
+    "priority": {
+      "default": 100,
+      "minimum": 0,
+      "title": "Priority",
+      "type": "integer"
+    },
+    "active": {
+      "default": true,
+      "title": "Active",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "routing_id",
+    "role_code",
+    "scope_type",
+    "user_upn"
+  ],
+  "title": "StakeholderRoutingRecord",
+  "type": "object"
+}

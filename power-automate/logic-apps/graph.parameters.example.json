@@ -1,0 +1,18 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "graphSitePath": {
+      "value": "contoso-demo.sharepoint.com:/sites/ManufacturingQualityDemo:"
+    },
+    "routingListId": {
+      "value": "dcace12c-8b7a-4789-a568-a1491fb7586e"
+    },
+    "incidentListId": {
+      "value": "02af0076-5640-45a2-b2e3-e3ca1b1d8704"
+    },
+    "workPackageListId": {
+      "value": "fec90a29-1a58-42a8-98a7-f3b0266896f2"
+    }
+  }
+}
