@@ -269,7 +269,7 @@ resource ingressWorkflow 'Microsoft.Logic/workflows@2019-05-01' = {
               Body: {
                 body: {
                   contentType: 'html'
-                  content: '<at id="0">Factory Owner</at><br/><b>製造品質異常を検知しました</b><br/>Incident: @{outputs(\'Compose_incident_id\')}<br/>Product: @{triggerBody()?[\'productNumber\']}<br/>Lot: @{triggerBody()?[\'lotId\']}<br/>Station: @{triggerBody()?[\'stationId\']}<br/>Torque: @{triggerBody()?[\'observedValue\']} @{coalesce(triggerBody()?[\'unit\'], \'Nm\')} &gt; @{triggerBody()?[\'thresholdValue\']} @{coalesce(triggerBody()?[\'unit\'], \'Nm\')}<br/>Owner: @{outputs(\'Compose_owner_upn\')}<br/>WorkPackage: @{outputs(\'Compose_work_package_id\')}<br/><br/><b>次のアクション</b><br/>1. <a href=\'${agentChatUrl}\'>AIで工場調査を開始</a><br/>2. 質問: <i>トルクが規格上限(50Nm)を超えた直近イベントを、製品・ロット・ステーション・ライン・トルク・時刻・状態つきで教えて。営業へcandidate引き継ぎが必要かも一言で。</i><br/>3. 品質文書も確認: <i>圧入工程でトルクが規格上限を超えた場合の初動対応と過去の8D事例を品質文書から教えて。8Dなど専門用語は初見でも分かるよう一言で説明し、文書IDと出典も。</i><br/>4. 顧客影響の可能性がある場合は <a href=\'${handoffLinkCallback}&incidentId=@{outputs(\'Compose_incident_id\')}&decision=candidate&productNumber=@{triggerBody()?[\'productNumber\']}&lotId=@{triggerBody()?[\'lotId\']}&customerName=Contoso\'>営業へ候補影響として引き継ぐ</a>'
+                  content: '<at id="0">Factory Owner</at><br/><b>製造品質異常を検知しました</b><br/>Incident: @{outputs(\'Compose_incident_id\')}<br/>Product: @{triggerBody()?[\'productNumber\']}<br/>Lot: @{triggerBody()?[\'lotId\']}<br/>Station: @{triggerBody()?[\'stationId\']}<br/>Torque: @{triggerBody()?[\'observedValue\']} @{coalesce(triggerBody()?[\'unit\'], \'Nm\')} &gt; @{triggerBody()?[\'thresholdValue\']} @{coalesce(triggerBody()?[\'unit\'], \'Nm\')}<br/>Owner: @{outputs(\'Compose_owner_upn\')}<br/>WorkPackage: @{outputs(\'Compose_work_package_id\')}<br/><br/><b>次のアクション</b><br/>1. <a href=\'${agentChatUrl}\'>AIで工場調査を開始</a><br/>2. 質問: <i>トルクが規格上限(50Nm)を超えた直近イベントを、製品・ロット・ステーション・ライン・トルク・時刻・状態つきで教えて。営業へcandidate引き継ぎが必要かも一言で。</i><br/>3. 品質文書も確認: <i>圧入工程でトルクが規格上限を超えた場合の初動対応と過去の8D事例を品質文書から教えて。8Dなど専門用語は初見でも分かるよう一言で説明し、文書IDと出典も。</i><br/>4. 顧客影響の可能性がある場合は <a href=\'${handoffLinkCallback}&incidentId=@{outputs(\'Compose_incident_id\')}&decision=candidate&productNumber=@{triggerBody()?[\'productNumber\']}&lotId=@{triggerBody()?[\'lotId\']}&customerName=Contoso\'>営業へ候補影響として引き継ぐ</a><br/>5. Cowork: この WorkPackage @{outputs(\'Compose_work_package_id\')} を起点に封じ込め会議・再検査チェックリスト・工場資料を準備（会議作成は承認後）'
                 }
                 mentions: [
                   {
@@ -526,7 +526,7 @@ resource handoffWorkflow 'Microsoft.Logic/workflows@2019-05-01' = {
               Body: {
                 body: {
                   contentType: 'html'
-                  content: '<at id="0">Sales Owner</at><br/><b>営業引き継ぎ Work Package を作成しました</b><br/>Incident: @{triggerBody()?[\'incidentId\']}<br/>WorkPackage: @{outputs(\'Compose_work_package_id\')}<br/>Customer: @{triggerBody()?[\'customerName\']}<br/>Product: @{triggerBody()?[\'productNumber\']}<br/>Impact: 候補影響(candidate)<br/>Owner: @{outputs(\'Compose_owner_upn\')}<br/><br/><b>次のアクション</b><br/>1. <a href=\'${agentChatUrl}\'>AIで営業調査を開始</a><br/>2. 質問: <i>今回の品質異常は @{triggerBody()?[\'productNumber\']} / @{triggerBody()?[\'lotId\']} です。Contoso 関連の進行中受注のうち影響候補を一覧で。ロット引当が未確認なら candidate として扱って。</i><br/>3. ロット引当が確認できるまで顧客影響は <b>候補影響(candidate)</b> として扱う'
+                  content: '<at id="0">Sales Owner</at><br/><b>営業引き継ぎ Work Package を作成しました</b><br/>Incident: @{triggerBody()?[\'incidentId\']}<br/>WorkPackage: @{outputs(\'Compose_work_package_id\')}<br/>Customer: @{triggerBody()?[\'customerName\']}<br/>Product: @{triggerBody()?[\'productNumber\']}<br/>Impact: 候補影響(candidate)<br/>Owner: @{outputs(\'Compose_owner_upn\')}<br/><br/><b>次のアクション</b><br/>1. <a href=\'${agentChatUrl}\'>AIで営業調査を開始</a><br/>2. 質問: <i>今回の品質異常は @{triggerBody()?[\'productNumber\']} / @{triggerBody()?[\'lotId\']} です。Contoso 関連の進行中受注のうち影響候補を一覧で。ロット引当が未確認なら candidate として扱って。</i><br/>3. ロット引当が確認できるまで顧客影響は <b>候補影響(candidate)</b> として扱う<br/>4. Cowork: この WorkPackage @{outputs(\'Compose_work_package_id\')} を起点に顧客影響会議・説明資料・初報メール案を準備（送信・会議作成は承認後）'
                 }
                 mentions: [
                   {
@@ -625,7 +625,7 @@ resource handoffLinkWorkflow 'Microsoft.Logic/workflows@2019-05-01' = {
             headers: {
               'Content-Type': 'text/html; charset=utf-8'
             }
-            body: '<html><body><h2>Sales handoff requested</h2><p>Incident: @{triggerOutputs()?[\'queries\']?[\'incidentId\']}</p><p>Decision: @{coalesce(triggerOutputs()?[\'queries\']?[\'decision\'], \'candidate\')}</p><p>WorkPackage: @{body(\'Call_handoff_workflow\')?[\'workPackageId\']}</p><p>You can close this tab and return to Teams.</p></body></html>'
+            body: '<html><body style="font-family:Segoe UI,sans-serif"><h2>営業へ引き継ぎました（candidate）</h2><p>Incident: @{triggerOutputs()?[\'queries\']?[\'incidentId\']}</p><p>判定: @{coalesce(triggerOutputs()?[\'queries\']?[\'decision\'], \'candidate\')}</p><p>営業 WorkPackage: <b>@{body(\'Call_handoff_workflow\')?[\'workPackageId\']}</b></p><p>営業担当へ Teams 通知を送信しました。Cowork では、この WorkPackage を起点に顧客影響会議・説明資料・初報メール案を準備できます（送信・会議作成は承認後）。</p><p>このタブを閉じて Teams に戻ってください。</p></body></html>'
           }
           runAfter: {
             Call_handoff_workflow: [
