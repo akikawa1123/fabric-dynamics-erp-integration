@@ -63,12 +63,12 @@ flowchart TD
 
 ## デモの流れ
 
-1. **異常発生**: 圧入工程でトルクが規格上限（50Nm）を連続超過し、Eventhouse の `Telemetry` に蓄積。
-2. **自動検知・通知**: Activator が発火 → UDF → Logic App が担当者を表引きで確定 → SharePoint 記録 → Teams へ @メンション通知。
+1. **異常発生**: 圧入工程でトルクが規格上限（50Nm）を連続超過し、Eventhouse の `Telemetry` に蓄積（デモでは `scenario-c/inject_anomaly_eventhouse.py` で固定ロットの異常を注入し Activator を発火）。
+2. **自動検知・通知**: Activator が発火 → UDF → Logic App が担当者を表引きで確定 → SharePoint 記録 → Teams へ @メンション通知（通知に AI調査リンク・引き継ぎリンク・Cowork起動リンク＋入力例を同梱）。
 3. **工場 AI 調査**: 通知リンクから M365 Copilot で異常を確認し、品質文書（8D 等）も照会。営業への candidate 引き継ぎ要否を判断材料として提示。
 4. **引き継ぎ**: Teams の引き継ぎリンクから営業 Work Package を作成し、営業担当へ @メンション通知。
 5. **営業 AI 調査**: M365 Copilot で当該製品の Contoso 関連進行中受注を「候補（candidate）」として確認。
-6. **Cowork（任意・別担当）**: Work Package を起点に、封じ込め会議・資料・初報メール案を**人の承認前提**で準備。
+6. **Cowork（任意・別担当）**: Work Package を起点に、封じ込め会議・資料・初報メール案を**人の承認前提**で準備（通知の Cowork リンク＋入力例から起動）。
 
 詳細な手順・プロンプト例・公開フォーム値は [`docs/18-operator-handoff.md`](docs/18-operator-handoff.md) を参照。
 図解と挙動変更まとめは [`docs/19-demo-flow-and-changes.md`](docs/19-demo-flow-and-changes.md)。
